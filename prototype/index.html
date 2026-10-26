@@ -47,15 +47,13 @@ table{width:100%;border-collapse:collapse}th,td{padding:10px 8px;border-bottom:1
 const $=s=>document.querySelector(s);
 const D=n=>{const d=new Date();d.setDate(d.getDate()+n);return d};
 const fmt=d=>d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
-const IND=['Construction & industrial','Warehouse & fulfilment','Farming & agriculture','Similar industries'];
-const CT=['Pipe fitter','Welder','Mechanical technician','Rigger','Scaffolder','Electrician','Operator'];
-const WT=['Picker / packer','Forklift operator','Inventory controller','Warehouse supervisor'];
-const FT=['Farm operator','Irrigation technician','Machinery operator','Harvest supervisor'];
-const TRC={'Construction & industrial':CT,'Warehouse & fulfilment':WT,'Farming & agriculture':FT,'Similar industries':[...CT,...WT,...FT]};
-const TR=[...CT,...WT,...FT];
-const RQ=['HSE induction','Confined-space entry','Welding support','Working at height','Rigging certificate','Forklift licence','Crane operator licence','Plant operation certificate','Manual handling awareness','Machinery-operation certificate','First aid','Food-hygiene awareness','Driving licence'];
+const IND={
+'Construction & industrial':{trades:['Pipe fitter','Welder','Mechanical technician','Rigger','Scaffolder','Electrician','Operator'],reqs:['HSE induction','Confined-space entry','Welding support','Working at height','Rigging certificate','Forklift licence','Crane operator licence','Plant operation certificate'],note:'Construction and industrial maintenance roles require trade-specific credentials. Operator roles require the licence or plant certificate relevant to the equipment in question.'},
+'Warehouse & fulfilment':{trades:['Picker / packer','Forklift operator','Inventory controller','Warehouse supervisor','Delivery driver','Returns processor'],reqs:['HSE induction','Manual handling','Forklift licence','Inventory-system training','Dangerous-goods awareness','Driving licence'],note:'Warehouse and fulfilment roles focus on safe handling, inventory accuracy, equipment competence and peak-period coverage. Modelled on the operating patterns of large-scale fulfilment and retail supply-chain networks; no customer relationship or endorsement is implied.'},
+'Farming & agriculture':{trades:['Farm hand','Irrigation technician','Greenhouse worker','Machinery operator','Livestock assistant','Packhouse worker'],reqs:['HSE induction','Pesticide-handling awareness','Machinery-operation certificate','First aid','Food-hygiene awareness','Driving licence'],note:'Farming and agriculture roles require seasonal availability, safe equipment and chemical handling, animal-welfare awareness where relevant, and food-hygiene readiness for packhouse work.'},
+'Similar industries':{trades:['General labourer','Site support','Logistics assistant','Facilities assistant','Maintenance helper','Seasonal worker'],reqs:['HSE induction','Manual handling','First aid','Customer-service awareness','Driving licence'],note:'Similar-industries matching is for adjacent operational roles. Requirements must be confirmed against the actual worksite, equipment and regulatory context before deployment.'}};
 const SRC={issuer:['Issuer-verified','g'],provider:['Provider-confirmed','t'],declared:['Declared','a']};
-const H='HSE induction',C='Confined-space entry',WS='Welding support',WA='Working at height',RG='Rigging certificate',FL='Forklift licence',CR='Crane operator licence',PL='Plant operation certificate',MH='Manual handling awareness',MO='Machinery-operation certificate',FA='First aid',FH='Food-hygiene awareness',DL='Driving licence';
+const H='HSE induction',C='Confined-space entry',WS='Welding support',WA='Working at height',RG='Rigging certificate',FL='Forklift licence',CR='Crane operator licence',PL='Plant operation certificate',MH='Manual handling',IS='Inventory-system training',DG='Dangerous-goods awareness',DL='Driving licence',PA='Pesticide-handling awareness',MO='Machinery-operation certificate',FA='First aid',FH='Food-hygiene awareness',CS='Customer-service awareness';
 const mk=(n,t,g,y,l,p,av,c,ins,vis)=>({id:'WKR-'+n,trade:t,grade:g,yrs:y,lang:l,prov:p,avail:av,creds:c,ins:ins,vis:vis||'verified'});
 const WK=[
 mk('0412','Pipe fitter',2,7,'Hindi, English','Provider A',0,[[H,'issuer',200],[C,'provider',120],[WS,'declared',300]],1),
@@ -83,27 +81,40 @@ mk('1304','Operator',1,15,'Urdu, basic Arabic','Provider C',0,[[H,'issuer',380],
 mk('1347','Operator',2,3,'Bengali, Hindi','Provider A',7,[[H,'issuer',180],[FL,'provider',100]],1),
 mk('1391','Operator',3,7,'Hindi, English','Provider B',0,[[H,'issuer',290],[CR,'issuer',240],[PL,'issuer',200]],1),
 mk('1436','Operator',1,10,'Urdu, English','Provider C',0,[[H,'issuer',330],[FL,'issuer',300],[PL,'provider',250]],1,'hidden'),
-mk('2101','Picker / packer',1,4,'Hindi, English','Provider A',0,[[H,'issuer',300],[MH,'issuer',200],[FA,'provider',180]],1),
-mk('2142','Picker / packer',1,6,'Urdu, English','Provider B',0,[[H,'issuer',280],[MH,'issuer',240],[FH,'provider',150]],1),
-mk('2187','Picker / packer',2,3,'Bengali, Hindi','Provider C',2,[[H,'provider',150],[MH,'declared',300]],1),
-mk('2213','Forklift operator',2,7,'Hindi, English','Provider A',0,[[H,'issuer',350],[FL,'issuer',300],[MH,'issuer',220]],1),
-mk('2258','Forklift operator',1,10,'Urdu, English','Provider B',0,[[H,'issuer',320],[FL,'issuer',280],[DL,'provider',260]],1),
-mk('2304','Forklift operator',2,5,'Malayalam, English','Provider C',3,[[H,'issuer',240],[FL,'provider',180],[MH,'issuer',200]],1),
-mk('2347','Inventory controller',2,8,'Hindi, English','Provider A',0,[[H,'issuer',300],[MH,'issuer',250],[FA,'provider',200]],1),
-mk('2391','Inventory controller',1,6,'Urdu, English','Provider B',1,[[H,'issuer',260],[MH,'provider',200],[FH,'issuer',180]],1),
-mk('2436','Warehouse supervisor',3,9,'Hindi, English','Provider A',0,[[H,'issuer',400],[MH,'issuer',300],[FA,'issuer',280],[DL,'provider',250]],1),
-mk('3101','Farm operator',1,6,'Hindi, English','Provider A',0,[[H,'issuer',280],[MO,'issuer',240],[FA,'provider',200]],1),
-mk('3142','Farm operator',1,8,'Urdu, English','Provider B',0,[[H,'issuer',300],[MO,'issuer',260],[FH,'provider',180]],1),
-mk('3187','Irrigation technician',2,7,'Hindi, English','Provider C',0,[[H,'issuer',320],[MO,'issuer',280],[FA,'provider',220]],1),
-mk('3213','Irrigation technician',1,5,'Bengali, Hindi','Provider A',2,[[H,'provider',180],[MO,'declared',300]],1),
-mk('3258','Machinery operator',2,9,'Hindi, English','Provider B',0,[[H,'issuer',360],[MO,'issuer',320],[DL,'issuer',280]],1),
-mk('3304','Machinery operator',1,11,'Urdu, English','Provider C',0,[[H,'issuer',340],[MO,'issuer',300],[PL,'provider',240]],1),
-mk('3347','Harvest supervisor',3,8,'Malayalam, English','Provider A',0,[[H,'issuer',380],[MO,'issuer',300],[FA,'issuer',260],[FH,'provider',220]],1),
-mk('3391','Harvest supervisor',2,6,'Hindi, basic Arabic','Provider B',4,[[H,'issuer',280],[MO,'provider',240],[FH,'issuer',200]],1)];
-let S=load()||{tab:'request',req:{industry:'Construction & industrial',trade:'Pipe fitter',qty:4,start:3,days:14,reqs:[H,C]},rid:[],short:[],bk:[],cur:0,ws:{},log:[],wsel:'WKR-0412'};
-if(!S.req.industry){S.req.industry='Construction & industrial';S.req.trade='Pipe fitter';S.rid=[];S.short=[]}
+mk('2001','Picker / packer',1,3,'Hindi, English','Provider A',0,[[H,'issuer',300],[MH,'issuer',220],[IS,'provider',150]],1),
+mk('2002','Picker / packer',1,5,'Urdu, English','Provider B',0,[[H,'issuer',350],[MH,'issuer',260],[IS,'issuer',180]],1),
+mk('2003','Picker / packer',2,2,'Bengali, Hindi','Provider C',4,[[H,'provider',150],[MH,'declared',300]],1),
+mk('2004','Picker / packer',1,7,'Malayalam, English','Provider A',0,[[H,'issuer',400],[MH,'issuer',300],[IS,'provider',210]],1),
+mk('2005','Forklift operator',2,6,'Hindi, English','Provider A',0,[[H,'issuer',380],[FL,'issuer',320],[MH,'provider',200]],1),
+mk('2006','Forklift operator',1,9,'Urdu, English','Provider B',0,[[H,'issuer',420],[FL,'issuer',350],[DG,'provider',180]],1),
+mk('2007','Forklift operator',2,4,'Bengali, Hindi','Provider C',3,[[H,'issuer',250],[FL,'provider',160]],1),
+mk('2008','Inventory controller',2,8,'Hindi, English','Provider A',0,[[H,'issuer',360],[IS,'issuer',300],[MH,'provider',180]],1),
+mk('2009','Inventory controller',1,5,'Urdu, English','Provider B',2,[[H,'issuer',300],[IS,'provider',220]],1),
+mk('2010','Warehouse supervisor',3,10,'Hindi, English','Provider A',0,[[H,'issuer',500],[IS,'issuer',400],[MH,'issuer',320],[FA,'provider',260]],1),
+mk('2011','Delivery driver',2,7,'Hindi, English','Provider A',0,[[H,'issuer',350],[DL,'issuer',500],[MH,'provider',220]],1),
+mk('2012','Delivery driver',1,4,'Urdu, English','Provider B',0,[[H,'issuer',300],[DL,'issuer',420],[CS,'provider',180]],1),
+mk('2013','Returns processor',1,3,'Bengali, Hindi','Provider C',0,[[H,'issuer',280],[MH,'issuer',200],[IS,'provider',150]],1),
+mk('3001','Farm hand',1,4,'Hindi, English','Provider A',0,[[H,'issuer',300],[FA,'provider',200],[FH,'issuer',180]],1),
+mk('3002','Farm hand',1,6,'Urdu, English','Provider B',0,[[H,'issuer',350],[PA,'issuer',220],[FA,'provider',180]],1),
+mk('3003','Irrigation technician',2,7,'Hindi, English','Provider A',0,[[H,'issuer',400],[MO,'issuer',320],[FA,'provider',240]],1),
+mk('3004','Irrigation technician',1,3,'Bengali, Hindi','Provider C',5,[[H,'provider',180],[MO,'declared',350]],1),
+mk('3005','Greenhouse worker',1,5,'Malayalam, English','Provider A',0,[[H,'issuer',320],[FH,'issuer',260],[FA,'provider',180]],1),
+mk('3006','Machinery operator',2,8,'Hindi, English','Provider A',0,[[H,'issuer',420],[MO,'issuer',360],[FA,'provider',280]],1),
+mk('3007','Machinery operator',3,12,'Urdu, English','Provider B',0,[[H,'issuer',480],[MO,'issuer',420],[PA,'provider',260]],1),
+mk('3008','Livestock assistant',1,6,'Hindi, English','Provider A',2,[[H,'issuer',300],[FA,'issuer',240],[FH,'provider',180]],1),
+mk('3009','Packhouse worker',1,3,'Bengali, Hindi','Provider C',0,[[H,'issuer',260],[FH,'issuer',220],[FA,'provider',160]],1),
+mk('3010','Packhouse worker',2,6,'Urdu, English','Provider A',0,[[H,'issuer',340],[FH,'issuer',300],[MH,'provider',200]],1),
+mk('4001','General labourer',1,5,'Hindi, English','Provider A',0,[[H,'issuer',300],[MH,'provider',200],[FA,'issuer',180]],1),
+mk('4002','Site support',1,7,'Urdu, English','Provider B',0,[[H,'issuer',350],[MH,'issuer',240],[CS,'provider',160]],1),
+mk('4003','Logistics assistant',2,4,'Hindi, English','Provider A',0,[[H,'issuer',320],[MH,'issuer',220],[IS,'provider',180]],1),
+mk('4004','Facilities assistant',1,6,'Bengali, Hindi','Provider C',3,[[H,'issuer',280],[MH,'provider',200],[FA,'issuer',160]],1),
+mk('4005','Maintenance helper',2,8,'Malayalam, English','Provider A',0,[[H,'issuer',360],[MH,'issuer',260],[FA,'provider',220]],1),
+mk('4006','Seasonal worker',1,2,'Hindi, English','Provider B',0,[[H,'issuer',220],[MH,'provider',150]],1)];
+function migrate(s){if(!s||!s.req)return s;s.req.industry=s.req.industry||'Construction & industrial';if(!IND[s.req.industry])s.req.industry='Construction & industrial';if(!IND[s.req.industry].trades.includes(s.req.trade))s.req.trade=IND[s.req.industry].trades[0];if(!Array.isArray(s.req.reqs))s.req.reqs=[];return s}
+let S=migrate(load())||{tab:'request',req:{industry:'Construction & industrial',trade:'Pipe fitter',qty:4,start:3,days:14,reqs:[H,C]},rid:[],short:[],bk:[],cur:0,ws:{},log:[],wsel:'WKR-0412'};
 function load(){try{return JSON.parse(localStorage.getItem('sg1'))}catch(e){return null}}
 function save(){localStorage.setItem('sg1',JSON.stringify(S))}
+function cfg(){return IND[S.req.industry]}
 function wk(id){return Object.assign({},WK.find(x=>x.id===id),S.ws[id]||{})}
 function ev(id,r){const w=wk(id);if(w.vis==='hidden')return null;const end=r.start+r.days,is=[];
 r.reqs.forEach(q=>{const c=w.creds.find(x=>x[0]===q);if(!c)is.push({k:'cred',t:'Missing: '+q});else if(c[1]==='declared')is.push({k:'cred',t:'Declared only, needs verification: '+q});else if(c[2]<end)is.push({k:'cred',t:q+' expires '+fmt(D(c[2]))+', before assignment ends'})});
@@ -117,25 +128,24 @@ function toast(m){const e=$('#toast');e.textContent=m;e.classList.add('show');se
 function cur(){return S.bk[S.cur]}
 function tsOf(b){S.tw=S.tw&&b.ws.includes(S.tw)?S.tw:b.ws[0];return b.ts[S.tw]=b.ts[S.tw]||{h:[8,8,9,8,10,8,8],rate:18,ap:0,pd:0,iv:0,q:0,ex:0}}
 const empty=t=>`<section class='card'><h2>${t}</h2><p class='m'>No booking yet. Shortlist workers on the Request tab and book them.</p></section>`;
-const bsel=()=>S.bk.length>1?`<label>Booking<select data-f='cur'>${S.bk.map((b,i)=>`<option value='${i}' ${i==S.cur?'selected':''}>${b.id}: ${b.req.trade} x${b.ws.length}</option>`).join('')}</select></label>`:'';
+const bsel=()=>S.bk.length>1?`<label>Booking<select data-f='cur'>${S.bk.map((b,i)=>`<option value='${i}' ${i==S.cur?'selected':''}>${b.id}: ${b.req.industry} - ${b.req.trade} x${b.ws.length}</option>`).join('')}</select></label>`:'';
 const V={
-request(){const r=S.req;let h=`<section class='card'><h2>New workforce request</h2><div class='grid'>
-<label>Industry<select data-f='industry'>${IND.map(i=>`<option ${i==r.industry?'selected':''}>${i}</option>`).join('')}</select></label>
-<label>Trade<select data-f='trade'>${TRC[r.industry].map(t=>`<option ${t==r.trade?'selected':''}>${t}</option>`).join('')}</select></label>
+request(){const r=S.req,c=cfg();let h=`<section class='card'><h2>New workforce request</h2><div class='grid'>
+<label>Industry<select data-f='industry'>${Object.keys(IND).map(x=>`<option ${x==r.industry?'selected':''}>${x}</option>`).join('')}</select></label>
+<label>Trade<select data-f='trade'>${c.trades.map(t=>`<option ${t==r.trade?'selected':''}>${t}</option>`).join('')}</select></label>
 <label>Workers needed<input type='number' min='1' max='200' data-f='qty' value='${r.qty}'></label>
 <label>Start in (days)<input type='number' min='0' max='60' data-f='start' value='${r.start}'></label>
 <label>Duration (days)<input type='number' min='1' max='365' data-f='days' value='${r.days}'></label></div>
-<div class='chips'>${RQ.map(q=>`<label class='chip ${r.reqs.includes(q)?'on':''}'><input type='checkbox' data-f='req' value='${q}' ${r.reqs.includes(q)?'checked':''}> ${q}</label>`).join('')}</div>
+<div class='chips'>${c.reqs.map(q=>`<label class='chip ${r.reqs.includes(q)?'on':''}'><input type='checkbox' data-f='req' value='${q}' ${r.reqs.includes(q)?'checked':''}> ${q}</label>`).join('')}</div>
 <button class='btn' data-a='find'>Find ready workers</button>
-<p class='note'>Matching is skills-based. Names, nationality and religion are not shown or searchable. Workers who hid their profile are excluded. Operator and machinery roles require the relevant licence or certificate for the equipment in question.</p>
-<p class='note'>Modelled on the operating patterns of large-scale fulfilment, retail supply-chain and agricultural production networks. No customer names, logos, endorsements or implied relationships are included.</p></section>`;
+<p class='note'>${c.note}</p><p class='note'>Matching is skills-based. Names, nationality and religion are not shown or searchable. Workers who hid their profile are excluded.</p></section>`;
 const rs=S.rid.map(id=>ev(id,r)).filter(Boolean);
 if(S.rid.length){h+=`<section class='card'><h2>${rs.length} candidates, ${rs.filter(x=>x.ok).length} ready</h2><table><tr><th>Worker</th><th>Experience</th><th>Employer of record</th><th>Readiness</th><th></th></tr>`+
 rs.map(x=>`<tr><td><b>${x.w.id}</b><br><span class='m'>${x.w.trade}, Grade ${x.w.grade}</span></td><td>${x.w.yrs} yrs<br><span class='m'>${x.w.lang}</span></td><td>${x.w.prov}<br><span class='m'>Licensed provider</span></td><td><span class='p ${x.ok?'g':'a'}'>${x.ok?'Ready':'Needs review'}</span><div class='m'>${x.is.map(i=>i.t).join('<br>')}</div></td><td><button class='btn s' data-a='sl' data-id='${x.w.id}'>${S.short.includes(x.w.id)?'Remove':'Shortlist'}</button></td></tr>`).join('')+
 `</table><p class='note'>Shortlisted: ${S.short.length} of ${r.qty} needed.</p><button class='btn' data-a='book' ${S.short.length?'':'disabled'}>Book shortlisted workers</button></section>`}
 return h},
 readiness(){const b=cur();if(!b)return empty('Readiness');
-return `<section class='card'><h2>Readiness for ${b.id}: ${b.req.trade}, ${b.ws.length} workers</h2><div class='grid'>${bsel()}</div><p class='note'>Readiness is assignment-specific and based on the evidence on file. Final deployment follows provider and customer processes.</p></section>`+
+return `<section class='card'><h2>Readiness for ${b.id}: ${b.req.industry} - ${b.req.trade}, ${b.ws.length} workers</h2><div class='grid'>${bsel()}</div><p class='note'>Readiness is assignment-specific and based on the evidence on file. Final deployment follows provider and customer processes.</p></section>`+
 b.ws.map(id=>{const e=ev(id,b.req)||{w:wk(id),is:[{k:'vis',t:'Profile hidden by worker'}],ok:false};const has=k=>e.is.some(i=>i.k===k);
 const it=[['Identity checked with worker consent',true],['Required credentials verified and valid',!has('cred')],['Employment route: '+e.w.prov+' (licensed provider, employer of record)',true],['Availability reconfirmed',!has('avail')],['Health insurance active',!has('ins')&&!has('vis')]];
 const pc=Math.round(it.filter(x=>x[1]).length/it.length*100);
@@ -162,9 +172,9 @@ ${c.flags.length?`<p class='flag'>Flags: ${c.flags.join(' | ')}</p>`:`<p class='
 <p class='note'>${t.q?'Query raised with provider and supervisor. ':''}Wage payment does not wait for the customer invoice. Approval is blocked while flags are open unless an exception is recorded. Rules are illustrative and need UAE legal review.</p></section>`},
 insights(){const nb=S.bk.length,wb=S.bk.reduce((a,b)=>a+b.ws.length,0);let ready=0,tot=0,ap=0,pd=0;
 S.bk.forEach(b=>{b.ws.forEach(id=>{const e=ev(id,b.req);tot++;if(e&&e.ok)ready++});Object.values(b.ts).forEach(t=>{if(t.ap){ap++;if(t.pd)pd++}})});
-const sup=TR.map(t=>[t,WK.filter(w=>w.trade===t&&wk(w.id).vis!=='hidden').length]).filter(x=>x[1]>0);const mx=Math.max(...sup.map(x=>x[1]));
+const inds=Object.keys(IND);const sup=inds.map(i=>[i,WK.filter(w=>IND[i].trades.includes(w.trade)&&wk(w.id).vis!=='hidden').length]);const mx=Math.max(...sup.map(x=>x[1]));
 return `<section class='card'><h2>Pilot dashboard (simulated)</h2><div class='kpi'><div><b>${nb}</b>Bookings</div><div><b>${wb}</b>Workers booked</div><div><b>${tot?Math.round(ready/tot*100)+'%':'-'}</b>Ready at mobilisation</div><div><b>${ap?Math.round(pd/ap*100)+'%':'-'}</b>Approved timesheets paid</div></div></section>
-<section class='card'><h2>Visible supply by trade</h2>${sup.map(x=>`<div>${x[0]} <span class='m'>${x[1]}</span></div><div class='bar'><i style='width:${Math.round(x[1]/mx*100)}%'></i></div>`).join('')}<p class='note'>All figures come from simulated records in this browser.</p></section>`}};
+<section class='card'><h2>Visible supply by industry</h2>${sup.map(x=>`<div>${x[0]} <span class='m'>${x[1]}</span></div><div class='bar'><i style='width:${Math.round(x[1]/mx*100)}%'></i></div>`).join('')}<p class='note'>All figures come from simulated records in this browser. Supply-chain context is illustrative and does not represent any named company or customer.</p></section>`}};
 const A={
 find(){const r=S.req;const rs=WK.filter(w=>w.trade===r.trade).map(w=>ev(w.id,r)).filter(Boolean).sort((a,b)=>b.ok-a.ok||b.w.yrs-a.w.yrs);S.rid=rs.map(x=>x.w.id);S.short=rs.filter(x=>x.ok).slice(0,r.qty).map(x=>x.w.id);toast(rs.length+' candidates, '+S.short.length+' ready shortlisted')},
 sl(id){S.short=S.short.includes(id)?S.short.filter(x=>x!==id):[...S.short,id]},
@@ -182,7 +192,7 @@ function render(){document.querySelectorAll('nav button').forEach(b=>b.classList
 document.addEventListener('click',e=>{const b=e.target.closest('[data-t],[data-a]');if(!b)return;if(b.dataset.t){S.tab=b.dataset.t}else{A[b.dataset.a](b.dataset.id)}render()});
 document.addEventListener('change',e=>{const f=e.target.dataset.f;if(!f)return;const v=e.target.value,r=S.req;
 if(f==='req'){r.reqs=e.target.checked?[...r.reqs,v]:r.reqs.filter(x=>x!==v)}
-else if(f==='industry'){r.industry=v;r.trade=TRC[v][0];r.reqs=[H,C];S.rid=[];S.short=[]}
+else if(f==='industry'){r.industry=v;r.trade=IND[v].trades[0];r.reqs=[IND[v].reqs[0],IND[v].reqs[1]||IND[v].reqs[0]].filter((x,i,a)=>a.indexOf(x)===i);S.rid=[];S.short=[]}
 else if(f==='trade'){r.trade=v;S.rid=[];S.short=[]}
 else if(f==='qty'||f==='start'||f==='days')r[f]=Math.max(0,+v||0);
 else if(f==='cur')S.cur=+v;else if(f==='tw')S.tw=v;else if(f==='wsel')S.wsel=v;
