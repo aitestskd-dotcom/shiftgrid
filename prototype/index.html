@@ -47,10 +47,10 @@ table{width:100%;border-collapse:collapse}th,td{padding:10px 8px;border-bottom:1
 const $=s=>document.querySelector(s);
 const D=n=>{const d=new Date();d.setDate(d.getDate()+n);return d};
 const fmt=d=>d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
-const TR=['Pipe fitter','Welder','Mechanical technician','Rigger','Scaffolder','Electrician'];
-const RQ=['HSE induction','Confined-space entry','Welding support','Working at height','Rigging certificate'];
+const TR=['Pipe fitter','Welder','Mechanical technician','Rigger','Scaffolder','Electrician','Operator'];
+const RQ=['HSE induction','Confined-space entry','Welding support','Working at height','Rigging certificate','Forklift licence','Crane operator licence','Plant operation certificate'];
 const SRC={issuer:['Issuer-verified','g'],provider:['Provider-confirmed','t'],declared:['Declared','a']};
-const H='HSE induction',C='Confined-space entry',WS='Welding support',WA='Working at height',RG='Rigging certificate';
+const H='HSE induction',C='Confined-space entry',WS='Welding support',WA='Working at height',RG='Rigging certificate',FL='Forklift licence',CR='Crane operator licence',PL='Plant operation certificate';
 const mk=(n,t,g,y,l,p,av,c,ins,vis)=>({id:'WKR-'+n,trade:t,grade:g,yrs:y,lang:l,prov:p,avail:av,creds:c,ins:ins,vis:vis||'verified'});
 const WK=[
 mk('0412','Pipe fitter',2,7,'Hindi, English','Provider A',0,[[H,'issuer',200],[C,'provider',120],[WS,'declared',300]],1),
@@ -68,7 +68,16 @@ mk('0690','Rigger',2,9,'Hindi, basic Arabic','Provider C',0,[[H,'issuer',240],[R
 mk('0761','Rigger',3,4,'Malayalam, English','Provider A',0,[[H,'issuer',100],[RG,'provider',90]],1),
 mk('0884','Scaffolder',2,8,'Urdu, Hindi','Provider B',0,[[H,'issuer',250],[WA,'issuer',210]],1),
 mk('0912','Electrician',2,6,'Hindi, English','Provider C',4,[[H,'issuer',280],[WA,'provider',130]],1),
-mk('0305','Electrician',1,11,'Urdu, English','Provider A',0,[[H,'issuer',310],[WA,'issuer',270],[C,'provider',140]],1,'hidden')];
+mk('0305','Electrician',1,11,'Urdu, English','Provider A',0,[[H,'issuer',310],[WA,'issuer',270],[C,'provider',140]],1,'hidden'),
+mk('1101','Operator',2,9,'Hindi, English','Provider A',0,[[H,'issuer',400],[FL,'issuer',300],[PL,'provider',180]],1),
+mk('1142','Operator',1,12,'Urdu, English','Provider A',0,[[H,'issuer',350],[FL,'issuer',280],[CR,'provider',150]],1),
+mk('1187','Operator',2,6,'Bengali, Hindi','Provider B',2,[[H,'issuer',220],[FL,'provider',140]],1),
+mk('1213','Operator',3,4,'Malayalam, English','Provider B',5,[[H,'provider',120],[PL,'declared',400]],1),
+mk('1258','Operator',2,8,'Hindi, basic Arabic','Provider C',0,[[H,'issuer',260],[CR,'issuer',210],[PL,'issuer',190]],1),
+mk('1304','Operator',1,15,'Urdu, basic Arabic','Provider C',0,[[H,'issuer',380],[FL,'issuer',320],[CR,'issuer',290],[PL,'provider',220]],1),
+mk('1347','Operator',2,3,'Bengali, Hindi','Provider A',7,[[H,'issuer',180],[FL,'provider',100]],1),
+mk('1391','Operator',3,7,'Hindi, English','Provider B',0,[[H,'issuer',290],[CR,'issuer',240],[PL,'issuer',200]],1),
+mk('1436','Operator',1,10,'Urdu, English','Provider C',0,[[H,'issuer',330],[FL,'issuer',300],[PL,'provider',250]],1,'hidden')];
 let S=load()||{tab:'request',req:{trade:'Pipe fitter',qty:4,start:3,days:14,reqs:[H,C]},rid:[],short:[],bk:[],cur:0,ws:{},log:[],wsel:'WKR-0412'};
 function load(){try{return JSON.parse(localStorage.getItem('sg1'))}catch(e){return null}}
 function save(){localStorage.setItem('sg1',JSON.stringify(S))}
@@ -94,7 +103,7 @@ request(){const r=S.req;let h=`<section class='card'><h2>New workforce request</
 <label>Duration (days)<input type='number' min='1' max='365' data-f='days' value='${r.days}'></label></div>
 <div class='chips'>${RQ.map(q=>`<label class='chip ${r.reqs.includes(q)?'on':''}'><input type='checkbox' data-f='req' value='${q}' ${r.reqs.includes(q)?'checked':''}> ${q}</label>`).join('')}</div>
 <button class='btn' data-a='find'>Find ready workers</button>
-<p class='note'>Matching is skills-based. Names, nationality and religion are not shown or searchable. Workers who hid their profile are excluded.</p></section>`;
+<p class='note'>Matching is skills-based. Names, nationality and religion are not shown or searchable. Workers who hid their profile are excluded. Operator roles require the relevant licence or plant certificate for the equipment in question.</p></section>`;
 const rs=S.rid.map(id=>ev(id,r)).filter(Boolean);
 if(S.rid.length){h+=`<section class='card'><h2>${rs.length} candidates, ${rs.filter(x=>x.ok).length} ready</h2><table><tr><th>Worker</th><th>Experience</th><th>Employer of record</th><th>Readiness</th><th></th></tr>`+
 rs.map(x=>`<tr><td><b>${x.w.id}</b><br><span class='m'>${x.w.trade}, Grade ${x.w.grade}</span></td><td>${x.w.yrs} yrs<br><span class='m'>${x.w.lang}</span></td><td>${x.w.prov}<br><span class='m'>Licensed provider</span></td><td><span class='p ${x.ok?'g':'a'}'>${x.ok?'Ready':'Needs review'}</span><div class='m'>${x.is.map(i=>i.t).join('<br>')}</div></td><td><button class='btn s' data-a='sl' data-id='${x.w.id}'>${S.short.includes(x.w.id)?'Remove':'Shortlist'}</button></td></tr>`).join('')+
