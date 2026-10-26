@@ -15,7 +15,9 @@ Contractors book verified workforce capacity by the hour, week or month through 
 - No sale of identifiable worker data. No public ratings or blacklists.
 
 ## Run the prototype
-Open `prototype/index.html` in a browser, or serve the folder:
+[Open ShiftGrid prototype](https://aitestskd-dotcom.github.io/shiftgrid/prototype/)
+
+Or run it locally: open `prototype/index.html` in a browser, or serve the folder:
 
 ```
 cd prototype && python3 -m http.server 8080
