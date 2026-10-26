@@ -1,0 +1,8 @@
+Add Warehouse operations vertical, picker/packer roles and Amazon-style example request
+
+- Add 'Warehouse operative', 'Picker', 'Packer', 'Sorter', 'Loader', 'Inventory associate', 'Returns associate', 'Forklift operator' and 'Reach-truck operator' to the trade list.
+- Add warehouse credentials: Manual handling, Reach-truck licence.
+- Add 12 simulated warehouse candidates across Providers A, B and C with varied availability, grades, credentials and industry experience.
+- Add 'Warehouse operations' to the industry selector and relate it to Facilities management, Manufacturing, Warehousing & logistics and Construction & MEP.
+- Add a prominent example button: 'Amazon-style peak: 40 pickers, 7 days'. It sets trade=Picker, industry=Warehouse operations, quantity=40, duration=7, requirements=HSE induction + Manual handling, and runs matching.
+- Keep all worker data simulated; no employer, customer or worker is identified.
